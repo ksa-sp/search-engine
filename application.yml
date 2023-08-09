@@ -1,0 +1,37 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/search_engine
+    username: user
+    password: qazWSX123!@#
+
+#server:
+#  port: 8080
+
+application-settings:
+### Global settings ###
+#  snippet-size: 160
+
+### Site settings ###
+#  user-agent:
+#  referer:
+#  ignore-robot-rules: false
+#  update: false
+#  tasks-per-site: 1
+#  connection-interval: 1000
+
+  tasks-per-site: 3
+  update: true
+
+  sites:
+    - url: http://localhost:8080/test/test.html
+      name: Search Engine
+      #update: true
+      connection-interval: 50
+    - url: https://nikoartgallery.com
+      name: Галерея Нико
+      #update: true
+      user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36
+    - url: https://galleryzaitsev.com
+      name: Галерея Зайцева
+      #update: true
+      user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36

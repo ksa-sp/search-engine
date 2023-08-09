@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/search_engine_test
+  jpa:
+#    show-sql: true
+    hibernate:
+      ddl-auto: create
+
+application-settings:
+  sites:
+    - url: http://localhost:8080/test/test.html
+      name: The Application
+      update: true
+      connection-interval: 50
+#    - url: https://nikoartgallery.com/
+#      name: nikoartgallery.com
+#      update: true
