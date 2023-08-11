@@ -1,9 +1,8 @@
-
 # Search Engine
 
 Search Engine is a local search engine for limited list of sites.
-It is amed at integration with search form of a site for the site internal text search.
-One instanse of Search Engine can serve several sites separately keeping data in one database.
+It is designed to be integrated with search form of a site for the site internal text search.
+One instance of Search Engine can serve several sites separately keeping data in one database.
 
 Search Engine is built with Java using Spring Boot framework and Apache Lucene library.
 

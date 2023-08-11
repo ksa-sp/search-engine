@@ -1,4 +1,3 @@
-
 # API Reference
 
 ## Start all sites indexing
@@ -116,8 +115,8 @@
 | :-------- | :------- | :------------------------- |
 | `query` | `string` | **Required**. Search query. |
 | `site` | `string` | Address of the site in the format of `http://www.site.com` to search in. If not present - search through all sites indexed. |
-| `offset` | `string` | First search result shift according total results list. Default value is 0. |
-| `limit` | `string` | Maximum number of search results in response. Default value is 20. |
+| `offset` | `integer` | First search result shift according total results list. Default value is 0. |
+| `limit` | `integer` | Maximum number of search results in response. Default value is 20. |
 
 #### Response of success
 
