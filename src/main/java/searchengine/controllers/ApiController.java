@@ -38,13 +38,17 @@ public class ApiController {
     /**
      * Request to start indexing all the sites configured.
      *
+     * @param site Site link to start indexing. Start all sites indexing if the parameter is absent.
+     *
      * @return {@link searchengine.dto.indexing.IndexingResponseOk} object in the case of success
      * <br>or {@link searchengine.dto.indexing.IndexingResponseError} object on either error
      * <br>or the indexing process is running.
      */
     @GetMapping("/startIndexing")
-    public ResponseEntity<IndexingResponse> startIndexing() {
-        return ResponseEntity.ok(indexingService.startIndexing());
+    public ResponseEntity<IndexingResponse> startIndexing(
+            @RequestParam(required = false) String site
+    ) {
+        return ResponseEntity.ok(indexingService.startIndexing(site));
     }
 
     /**
@@ -64,13 +68,17 @@ public class ApiController {
     /**
      * Request to stop indexing process.
      *
+     * @param site Site link to stop indexing. Stop all sites indexing if the parameter is absent.
+     *
      * @return {@link searchengine.dto.indexing.IndexingResponseOk} object in the case of success
      * <br>or {@link searchengine.dto.indexing.IndexingResponseError} object on either error
      * <br>or the indexing process is stopped.
      */
     @GetMapping("/stopIndexing")
-    public ResponseEntity<IndexingResponse> stopIndexing() {
-        return ResponseEntity.ok(indexingService.stopIndexing());
+    public ResponseEntity<IndexingResponse> stopIndexing(
+            @RequestParam(required = false) String site
+    ) {
+        return ResponseEntity.ok(indexingService.stopIndexing(site));
     }
 
     /**
@@ -79,12 +87,16 @@ public class ApiController {
      * Response to the request is sent immediately if indexing is stopped or
      * delayed until indexing process become finished.
      *
+     * @param site Site link to wait. Wait for all sites indexing stopped if the parameter is absent.
+     *
      * @return {@link searchengine.dto.indexing.IndexingResponseOk} object in the case of success
      * <br>or {@link searchengine.dto.indexing.IndexingResponseError} object on error.
      */
     @GetMapping("/waitIndexing")
-    public ResponseEntity<IndexingResponse> waitIndexing() {
-        return ResponseEntity.ok(indexingService.waitIndexing());
+    public ResponseEntity<IndexingResponse> waitIndexing(
+            @RequestParam(required = false) String site
+    ) {
+        return ResponseEntity.ok(indexingService.waitIndexing(site));
     }
 
     /**

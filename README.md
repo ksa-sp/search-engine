@@ -21,19 +21,11 @@ MySQL 8.0+
 
 Create local copy of the repository by downloading and extracting repo archive or use ```git clone``` command.
 
-Create database for the application
-
-```bash
-  mysql -u root -e "create database search_engine"
-```
-
 Go to the project directory
 
 ```bash
   cd search-engine
 ```
-
-Edit database connection settings in ```application.yml``` file with a text editor to let the application access to your installation of MySQL.
 
 Build JAR file skipping tests
 
@@ -41,7 +33,15 @@ Build JAR file skipping tests
   mvn package -Dmaven.test.skip
 ```
 
-Start the applcation
+Edit database connection settings in ```application.yml``` file with a text editor to let the application access to your installation of MySQL.
+
+Create database for the application
+
+```bash
+  mysql -u root -e "create database search_engine"
+```
+
+Start the application
 
 ```bash
   java -jar target/search-engine-*.jar

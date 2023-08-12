@@ -1,12 +1,16 @@
 # API Reference
 
-## Start all sites indexing
+## Start site indexing
 
 #### Request
 
 ```http
   GET /api/startIndexing
 ```
+
+| Parameter | Type     | Description                                                                                                                              |
+|:----------|:---------|:-----------------------------------------------------------------------------------------------------------------------------------------|
+| `site`    | `string` | Address of the site to start indexing. If not present - start indexing all sites configured. Format of the address `http://www.site.com` |
 
 #### Response of success
 
@@ -21,13 +25,17 @@
 		"error": "Error description"
       }
 
-## Stop any indexing
+## Stop site indexing
 
 #### Request
 
 ```http
   GET /api/stopIndexing
 ```
+
+| Parameter | Type     | Description                                                                                                                 |
+|:----------|:---------|:----------------------------------------------------------------------------------------------------------------------------|
+| `site`    | `string` | Address of the site to stop indexing. If not present - stop indexing all sites. Format of the address `http://www.site.com` |
 
 #### Response of success
 
@@ -50,9 +58,9 @@
   POST /api/indexPage
 ```
 
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `url` | `string` | **Required**. Address of the page to index. |
+| Parameter | Type     | Description                                 |
+|:----------|:---------|:--------------------------------------------|
+| `url`     | `string` | **Required**. Address of the page to index. |
 
 #### Response of success
 
@@ -111,12 +119,12 @@
   GET /api/search
 ```
 
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `query` | `string` | **Required**. Search query. |
-| `site` | `string` | Address of the site in the format of `http://www.site.com` to search in. If not present - search through all sites indexed. |
-| `offset` | `integer` | First search result shift according total results list. Default value is 0. |
-| `limit` | `integer` | Maximum number of search results in response. Default value is 20. |
+| Parameter | Type      | Description                                                                                                                      |
+|:----------|:----------|:---------------------------------------------------------------------------------------------------------------------------------|
+| `query`   | `string`  | **Required**. Search query.                                                                                                      |
+| `site`    | `string`  | Address of the site to search in. If not present - search through all sites indexed. Format of the address `http://www.site.com` |
+| `offset`  | `integer` | First search result shift relative to total results list. Default value is 0.                                                    |
+| `limit`   | `integer` | Maximum number of search results in response. Default value is 20.                                                               |
 
 #### Response of success
 

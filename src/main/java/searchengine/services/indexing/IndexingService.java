@@ -74,17 +74,40 @@ public class IndexingService implements AutoCloseable {
      * @return true if the process is active.
      */
     public boolean isIndexing() {
+        return isIndexing(null);
+    }
+
+    /**
+     * Site indexing process status.
+     *
+     * @param siteUrl Site link to check indexing status of or null to return true on any site is indexing.
+     *
+     * @return true if the process is active.
+     */
+    private synchronized boolean isIndexing(String siteUrl) {
         if (taskPool == null) {
             taskPool = new ForkJoinPool(applicationSettings.countIndexingThreads());
         }
 
-        for (SiteTask siteTask : taskList.values()) {
-            if (!siteTask.isDone()) {
-                return true;
+        if (siteUrl == null) {
+            for (SiteTask siteTask : taskList.values()) {
+                if (!siteTask.isDone()) {
+                    return true;
+                }
             }
-        }
 
-        taskList.clear();
+            taskList.clear();
+        } else {
+            try {
+                String root = SiteTask.link2root(siteUrl).toString();
+
+                if (taskList.containsKey(root) && !taskList.get(root).isDone()) {
+                    return true;
+                }
+
+                taskList.remove(root);
+            } catch (URISyntaxException ignored) {}
+        }
 
         return false;
     }
@@ -107,27 +130,65 @@ public class IndexingService implements AutoCloseable {
     }
 
     /**
-     * Waits for all tasks to finish
+     * Waits for site task to finish.
+     *
+     * @param siteUrl Site link to wait for indexing is done or null to wait for every indexing process is done.
      */
-    private synchronized void join() {
-        taskList.values().forEach(SiteTask::join);
-        taskList.clear();
+    private synchronized void join(String siteUrl) {
+        if (siteUrl == null) {
+            taskList.values().forEach(SiteTask::join);
+            taskList.clear();
+        } else {
+            try {
+                String root = SiteTask.link2root(siteUrl).toString();
+
+                if (taskList.containsKey(root)) {
+                    taskList.get(root).join();
+                    taskList.remove(root);
+                }
+            } catch (URISyntaxException ignored) {}
+        }
     }
 
     /**
-     * Activates user coused indexing shutdown.
+     * Activates user coursed site indexing shutdown.
+     *
+     * @param siteUrl Site link to shut down indexing process or null to shut down all indexing processes.
      */
-    public void shutdown() {
-        taskList.values().forEach(t -> t.shutdown(USER_SHUTDOWN_ERROR));
+    private void shutdown(String siteUrl) {
+        if (siteUrl == null) {
+            taskList.values().forEach(t -> t.shutdown(USER_SHUTDOWN_ERROR));
+        } else {
+            try {
+                String root = SiteTask.link2root(siteUrl).toString();
+
+                if (taskList.containsKey(root)) {
+                    taskList.get(root).shutdown(USER_SHUTDOWN_ERROR);
+                }
+            } catch (URISyntaxException ignored) {}
+        }
     }
 
     /**
      * Shutdown indexing process and wait it for finish.
+     *
+     * @throws InterruptedException Thread was interrupted.
      */
     @Override
     public void close() throws InterruptedException {
-        shutdown();
-        join();
+        close(null);
+    }
+
+    /**
+     * Shutdown site indexing process and wait it for finish.
+     *
+     * @param siteUrl Site link to shut down indexing process or null to shut down all indexing processes.
+     *
+     * @throws InterruptedException Thread was interrupted.
+     */
+    private void close(String siteUrl) throws InterruptedException {
+        shutdown(siteUrl);
+        join(siteUrl);
     }
 
     /**
@@ -135,10 +196,12 @@ public class IndexingService implements AutoCloseable {
      *
      * @param siteSettings Site to index.
      *
+     * @return true - new indexing task started.
+     *
      * @throws URISyntaxException Site start indexing link is broken.
      */
-    private void startSite(SiteSettings siteSettings) throws URISyntaxException {
-        startSite(siteSettings, null);
+    private boolean startSite(SiteSettings siteSettings) throws URISyntaxException {
+        return startSite(siteSettings, null);
     }
 
     /**
@@ -148,18 +211,24 @@ public class IndexingService implements AutoCloseable {
      * @param url Link to the page to index.
      *            If null - indexing all the site.
      *
+     * @return true - new indexing task started.
+     *
      * @throws URISyntaxException Start indexing link is broken.
      */
-    private synchronized void startSite(SiteSettings siteSettings, String url) throws URISyntaxException {
-        String key = SiteTask.link2root(siteSettings.getUrl()).toString();
+    private synchronized boolean startSite(SiteSettings siteSettings, String url) throws URISyntaxException {
+        String root = SiteTask.link2root(siteSettings.getUrl()).toString();
 
-        if (!taskList.containsKey(key)) {
+        if (!taskList.containsKey(root)) {
             SiteTask siteTask = url == null
                     ? new SiteTask(this, siteSettings)
                     : new SiteTask(this, siteSettings, url);
             taskPool.execute(siteTask);
-            taskList.put(key, siteTask);
+            taskList.put(root, siteTask);
+
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -167,7 +236,7 @@ public class IndexingService implements AutoCloseable {
      *
      * @throws InterruptedException Waiting was interrupted.
      */
-    public void waitIndexingStarted() throws InterruptedException {
+    private void waitIndexingStarted() throws InterruptedException {
         for (SiteTask task : taskList.values()) {
             task.waitStarted();
         }
@@ -176,22 +245,41 @@ public class IndexingService implements AutoCloseable {
     /**
      * Start indexing API request handler.
      *
+     * @param siteUrl Site link to start indexing or null to start indexing all available sites.
+     *
      * @return {@link searchengine.dto.indexing.IndexingResponseOk} object in the case of success
      * <br>or {@link searchengine.dto.indexing.IndexingResponseError} object on either error
      * <br>or the indexing process is running.
      */
-    public IndexingResponse startIndexing() {
-        if (isIndexing()) {
+    public IndexingResponse startIndexing(String siteUrl) {
+        if (isIndexing(siteUrl)) {
             return new IndexingResponseError(IndexingResponse.ERROR_INDEXING_ALREADY_RUN);
         }
 
-        applicationSettings.getSites().forEach(x -> {
+        if (applicationSettings.getSites().isEmpty()) {
+            return new IndexingResponseError(IndexingResponse.ERROR_EMPTY_CONFIGURATION);
+        }
+
+        int started = 0;
+
+        for (SiteSettings siteSettings : applicationSettings.getSites()) {
             try {
-                startSite(x);
+                if (siteUrl == null ||
+                        SiteTask.link2root(siteUrl).equals(
+                                SiteTask.link2root(siteSettings.getUrl())
+                        )
+                ) {
+                    startSite(siteSettings);
+                    started++;
+                }
             } catch (URISyntaxException e) {
                 e.printStackTrace();
             }
-        });
+        }
+
+        if (started == 0) {
+            return new IndexingResponseError(IndexingResponse.ERROR_UNKNOWN_SITE);
+        }
 
         try {
             waitIndexingStarted();
@@ -210,14 +298,14 @@ public class IndexingService implements AutoCloseable {
      * <br>or the indexing process is running.
      */
     public IndexingResponse indexPage(String url) {
-        if (isIndexing()) {
+        if (isIndexing(url)) {
             return new IndexingResponseError(IndexingResponse.ERROR_INDEXING_ALREADY_RUN);
         }
 
         for (SiteSettings settings : applicationSettings.getSites()) {
             try {
                 startSite(settings, url);
-                join();
+                join(url);
                 return new IndexingResponseOk();
             } catch (URISyntaxException ignored) {}
         }
@@ -228,17 +316,19 @@ public class IndexingService implements AutoCloseable {
     /**
      * Stop indexing API request handler.
      *
+     * @param siteUrl Site link to stop indexing or null to stop indexing all indexing sites.
+     *
      * @return {@link searchengine.dto.indexing.IndexingResponseOk} object in the case of success
      * <br>or {@link searchengine.dto.indexing.IndexingResponseError} object on either error
      * <br>or the indexing process is stopped.
      */
-    public IndexingResponse stopIndexing() {
-        if (!isIndexing()) {
+    public IndexingResponse stopIndexing(String siteUrl) {
+        if (!isIndexing(siteUrl)) {
             return new IndexingResponseError(IndexingResponse.ERROR_INDEXING_NOT_RUN);
         }
 
         try {
-            close();
+            close(siteUrl);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -249,15 +339,18 @@ public class IndexingService implements AutoCloseable {
     /**
      * Waits for indexing is stopped.
      *
+     * @param siteUrl Site link to wait for indexing is done or null to wait for every indexing process is done.
+     *
      * @return {@link searchengine.dto.indexing.IndexingResponseOk} object in the case of success
      * <br>or {@link searchengine.dto.indexing.IndexingResponseError} object on error.
      */
-    public IndexingResponse waitIndexing() {
-        if (!isIndexing()) {
+    public IndexingResponse waitIndexing(String siteUrl) {
+        if (!isIndexing(siteUrl)) {
             return new IndexingResponseError(IndexingResponse.ERROR_INDEXING_NOT_RUN);
         }
 
-        join();
+        join(siteUrl);
+
         return new IndexingResponseOk();
     }
 }

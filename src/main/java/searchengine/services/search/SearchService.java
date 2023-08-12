@@ -72,7 +72,7 @@ public class SearchService {
             ));
         }
 
-        if (sites.size() < 1) {
+        if (sites.isEmpty()) {
             return new SearchResponseError(SearchResponse.ERROR_SITE_NOT_INDEXED);
         }
 

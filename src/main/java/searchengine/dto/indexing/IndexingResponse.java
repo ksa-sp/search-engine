@@ -12,4 +12,8 @@ public abstract class IndexingResponse {
             = "Индексация не запущена";
     public static final String ERROR_OUTSIDE_PAGE
             = "Данная страница находится за пределами сайтов, указанных в конфигурационном файле";
+    public static final String ERROR_UNKNOWN_SITE
+            = "Сайт отсутствует в конфигурационном файле или неверный URI";
+    public static final String ERROR_EMPTY_CONFIGURATION
+            = "В конфигурационном файле нет ни одного сайта";
 }
