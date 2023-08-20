@@ -1457,6 +1457,16 @@ var API = function(){
             }
         });
     }
+
+    function sendStatistics() {
+        sendData(
+            send['statistics'].address,
+            send['statistics'].type,
+            '',
+            send['statistics'].action,
+            $('.Statistics')
+        )
+    }
     
     var send = {
         startIndexing:{
@@ -1589,6 +1599,7 @@ var API = function(){
                     $('#totalLemmas').text(result.statistics.total.lemmas);
                     $('#totalTasks').text(result.statistics.total.tasks);
                     $('select[name="siteSettings"] option').not(':first-child').remove();
+                    $('select[name="siteControl"] option').not(':first-child').remove();
                     result.statistics.detailed.forEach(function(site){
                         var $blockSiteExample = $('.Statistics-example').clone(true);
                         var statusClass = '';
@@ -1605,6 +1616,10 @@ var API = function(){
                             
                         }
                         $('select[name="siteSettings"]').append('' +
+                            '<option value="' + site.url + '">' +
+                                site.url +
+                            '</option>')
+                        $('select[name="siteControl"]').append('' +
                             '<option value="' + site.url + '">' +
                                 site.url +
                             '</option>')
@@ -1660,7 +1675,6 @@ var API = function(){
                             .data('send', 'stopIndexing')
                             .data('alttext', text)
                             .addClass('btn_check')
-                        $('.UpdatePageBlock').hide(0)
                     }
     
                 } else {
@@ -1683,13 +1697,7 @@ var API = function(){
             $element.find('.btn-content').text($element.data('alttext'));
             $element.data('alttext', text);
         }
-        if ($element.data('send') == 'startIndexing' || $element.data('send') == 'stopIndexing'){
-            if (check) {
-                $('.UpdatePageBlock').show(0)
-            } else {
-                $('.UpdatePageBlock').hide(0)
-            }
-        }
+
         check = !check;
         $element.data('check', check);
         if ($element.data('altsend')){
@@ -1708,6 +1716,15 @@ var API = function(){
     }
     return {
         init: function(){
+            var $statClick = $('.Statistics-block');
+            $statClick.on('click', function(e){
+                sendStatistics();
+            });
+            var $tabClick = $('.Tabs-link_ACTIVE');
+            $tabClick.on('click', function(e){
+                sendStatistics();
+            });
+
             var $btnCheck = $('[data-btntype="check"]');
             $btnCheck.on('click', function(e){
                 var $this = $(this);
@@ -1715,6 +1732,7 @@ var API = function(){
                     shiftCheck($this);
                 }
             });
+
             $btnCheck.on('changeCheck', function(){
                 var $this = $(this);
                 if ($this.data('btnradio')) {
@@ -1725,13 +1743,9 @@ var API = function(){
                     });
                 }
             });
-            sendData(
-                send['statistics'].address,
-                send['statistics'].type,
-                '',
-                send['statistics'].action,
-                $('.Statistics')
-            )
+
+            sendStatistics();
+
             var $send = $('[data-send]');
             $send.on('submit click', function(e){
                 var $this = $(this);
@@ -1741,6 +1755,16 @@ var API = function(){
                     e.preventDefault();
                     
                     switch ($this.data('send')) {
+                        case 'startIndexing':
+                            if ( $('select[name="siteControl"]').val() ) {
+                                data = {site: $('select[name="siteControl"]').val()};
+                            }
+                            break;
+                        case 'stopIndexing':
+                            if ( $('select[name="siteControl"]').val() ) {
+                                data = {site: $('select[name="siteControl"]').val()};
+                            }
+                            break;
                         case 'indexPage':
                             var $page = $this.closest('.form').find('input[name="page"]');
                             data = {url: $page.val()};
@@ -1754,25 +1778,31 @@ var API = function(){
                                     limit: $this.data('sendlimit')
                                 };
                             } else {
-                                data = {
-                                    query: $this.find('[name="query"]').val(),
-                                    offset: 0,
-                                    limit: $this.data('sendlimit')
-                                };
-                                if ( $this.find('[name="siteSettings"]').val() ) {
-                                    data.site = $this.find('[name="siteSettings"]').val();
+                                if ( $this.find('[name="query"]').val().length > 0 ) {
+                                    data = {
+                                        query: $this.find('[name="query"]').val(),
+                                        offset: 0,
+                                        limit: $this.data('sendlimit')
+                                    };
+                                    if ( $this.find('[name="siteSettings"]').val() ) {
+                                        data.site = $this.find('[name="siteSettings"]').val();
+                                    }
+                                } else {
+                                    data = false;
                                 }
                             }
                             break;
         
                     }
-                    sendData(
-                        send[$this.data('send')].address,
-                        send[$this.data('send')].type,
-                        data,
-                        send[$this.data('send')].action,
-                        $this
-                    )
+                    if ( data !== false ) {
+                        sendData(
+                            send[$this.data('send')].address,
+                            send[$this.data('send')].type,
+                            data,
+                            send[$this.data('send')].action,
+                            $this
+                        )
+                    }
                 }
             });
         }

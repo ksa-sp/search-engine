@@ -82,7 +82,9 @@ public abstract class SiteTaskHttpUtil extends SiteTaskShutdown {
                 .replaceAll("#.*", "")
                 .replaceAll("/+$", ""));
 
-        if (!uri.getScheme().toLowerCase().matches("^https?$")) {
+        String scheme = uri.getScheme();
+
+        if (scheme == null || !scheme.toLowerCase().matches("^https?$")) {
             throw new URISyntaxException(uri.toString(), "The scheme is not allowed");
         }
 

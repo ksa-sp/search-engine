@@ -65,7 +65,7 @@
             <div class="Tabs-links">
               <a class="Tabs-link Tabs-link_ACTIVE" href="#dashboard">
                 <img class="Tabs-icon" src="/assets/img/icons/dashboard.svg" alt="dashboard.svg"/>
-                <span class="Tabs-linkText" onclick="location.reload(false)">Dashboard</span>
+                <span class="Tabs-linkText">Dashboard</span>
               </a>
               <a class="Tabs-link" href="#management">
                 <img class="Tabs-icon" src="/assets/img/icons/management.svg" alt="management.svg"/>
@@ -87,19 +87,19 @@
                 <div class="Statistics">
                   <div class="Statistics-info">
                     <div class="Statistics-block">
-                      <span class="Statistics-amount" id="totalSites" onclick="location.reload(false)"></span>
+                      <span class="Statistics-amount" id="totalSites"></span>
                       <span class="Statistics-title">sites</span>
                     </div>
                     <div class="Statistics-block">
-                      <span class="Statistics-amount" id="totalPages" onclick="location.reload(false)"></span>
+                      <span class="Statistics-amount" id="totalPages"></span>
                       <span class="Statistics-title">pages</span>
                     </div>
                     <div class="Statistics-block">
-                      <span class="Statistics-amount" id="totalLemmas" onclick="location.reload(false)"></span>
+                      <span class="Statistics-amount" id="totalLemmas"></span>
                       <span class="Statistics-title">lemmas</span>
                     </div>
                     <div class="Statistics-block">
-                      <span class="Statistics-amount" id="totalTasks" onclick="location.reload(false)"></span>
+                      <span class="Statistics-amount" id="totalTasks"></span>
                       <span class="Statistics-title">tasks</span>
                     </div>
                   </div>
@@ -122,21 +122,31 @@
             <div class="Tabs-block" id="management">
               <div class="Section">
                 <div class="Section-header">
-                  <h2 class="Section-title">Management
-                  </h2>
+                  <h2 class="Section-title">Management</h2>
                 </div>
-                <div>
-                  <button class="btn btn_primary API-startIndexing" data-btntype="check" data-check="false" data-alttext="Stop indexing" data-send="startIndexing" data-altsend="stopIndexing"><span class="btn-content">Start indexing</span>
-                  </button>
-                </div><br>
+
+                <form class="form form_close" action="#" method="get">
+                  <div class="form-group">
+                    <div class="form-selectWrap">
+                      <!-- - var options = setOptions(items, ['value', 'selected', 'disabled']);-->
+                      <select class="form-select" name="siteControl">
+                        <option value="" selected="selected">All sites</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group form-group_row">
+                    <button class="btn btn_primary API-startIndexing" type="submit" data-btntype="check" data-check="false" data-alttext="Stop indexing" data-send="startIndexing" data-altsend="stopIndexing">
+                      <span class="btn-content">Start indexing</span>
+                    </button>
+                  </div>
+                </form>
+                <br>
                 <div class="UpdatePageBlock">
-                  <h3>Add/update page:
-                  </h3>
+                  <h3>Add/update page:</h3>
                   <form class="form form_close" action="#" method="post" data-send="indexPage">
                     <div class="form-group form-group_row">
                       <input class="form-input" id="page" name="page" type="text"/>
-                      <button class="btn btn_primary form-btn" type="submit">Add/update
-                      </button>
+                      <button class="btn btn_primary form-btn" type="submit">Add/update</button>
                     </div>
                   </form>
                 </div>
@@ -145,30 +155,25 @@
             <div class="Tabs-block" id="search">
               <div class="Section">
                 <div class="Section-header">
-                  <h2 class="Section-title">Search
-                  </h2>
+                  <h2 class="Section-title">Search</h2>
                 </div>
                 <form class="form form_close" action="#" method="post" data-send="search" data-sendlimit="10">
                   <div class="form-group">
                     <div class="form-selectWrap">
                       <!-- - var options = setOptions(items, ['value', 'selected', 'disabled']);-->
                       <select class="form-select" name="siteSettings" onchange="this.form.requestSubmit()">
-                        <option value="" selected="selected">All sites
-                        </option>
+                        <option value="" selected="selected">All sites</option>
                       </select>
                     </div>
                   </div>
                   <div class="form-group form-group_row">
                     <input class="form-input" id="query" name="query" type="text" placeholder="Query"/>
-                    <button class="btn btn_primary form-btn" type="submit">Search
-                    </button>
+                    <button class="btn btn_primary form-btn" type="submit">Search</button>
                   </div>
                 </form>
                 <div class="SearchResult">
-                  <strong class="SearchResult-title">Found&#32;<span class="SearchResult-amount">0</span>&#32;results
-                  </strong>
-                  <div class="SearchResult-content">
-                  </div>
+                  <strong class="SearchResult-title">Found&#32;<span class="SearchResult-amount">0</span>&#32;results</strong>
+                  <div class="SearchResult-content"></div>
                   <div class="SearchResult-footer SearchResult-footer_hide">
                     <button class="btn btn_primary" data-send="search" data-sendtype="next">Show more<span class="SearchResult-remain">(0)</span>
                     </button>
